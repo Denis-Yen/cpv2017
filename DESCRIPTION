@@ -1,0 +1,28 @@
+Package: cpv2017
+Type: Package
+Title: Censo de Población y Vivienda 2017 del Perú para el 'tidyverse'
+Version: 0.1.0
+Authors@R: person("Denis", "Rodriguez", email = "denisyenrc@gmail.com",
+    role = c("aut", "cre"))
+Description: Convierte la base REDATAM del Censo Nacional de Población y
+    Vivienda 2017 del Perú (INEI) a archivos 'Parquet' comprimidos y permite
+    consultar sus microdatos (vivienda, hogar y persona) con 'dplyr' sin
+    cargarlos en memoria. Incluye un lector propio de los formatos REDATAM
+    (.dicX, .ptr y .rbf PCK/CHR/DBL), el diccionario de variables y funciones
+    para etiquetar códigos.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Language: es
+Depends: R (>= 4.1)
+Imports:
+    arrow,
+    dplyr,
+    rlang,
+    tibble,
+    tidyselect,
+    xml2
+Suggests:
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Roxygen: list(markdown = TRUE)
+Config/roxygen2/version: 8.1.1

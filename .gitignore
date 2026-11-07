@@ -1,0 +1,12 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+# Los datos se publican como archivos del release, no en el repositorio
+*.parquet
+*.parcial
+manifiesto.csv
+*.rbf
+*.ptr
+*.dic
+*.dicX
