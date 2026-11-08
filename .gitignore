@@ -4,6 +4,7 @@
 .Ruserdata
 # Los datos se publican como archivos del release, no en el repositorio
 *.parquet
+!inst/extdata/muestra/*.parquet
 *.parcial
 manifiesto.csv
 *.rbf
