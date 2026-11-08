@@ -11,6 +11,11 @@
 #' del distrito (6 dígitos). Los valores se guardan con los códigos originales
 #' de REDATAM, incluidos los de "no aplica" y "sin dato" (ver [cpv_na()]).
 #'
+#' La base oficial está en el portal REDATAM de CEPAL:
+#' <https://prod.redatam.org/cdr/descargas/censos/poblacion/CP2017PER.zip>
+#' (679 MB). Al descomprimirla, el diccionario queda en
+#' `BaseD/BaseR/CPVPER2017D.dicX`.
+#'
 #' @param dicx Ruta al diccionario `.dicX` de la base REDATAM. Los `.rbf` y
 #'   `.ptr` deben estar en la misma carpeta.
 #' @param destino Carpeta donde se escriben los Parquet. Por defecto,
@@ -20,7 +25,13 @@
 #' @export
 #' @examples
 #' \dontrun{
-#' cpv_convertir("D:/CP2017PER/BaseD/BaseR/CPVPER2017D.dicX")
+#' zip <- file.path(tempdir(), "CP2017PER.zip")
+#' download.file(
+#'   "https://prod.redatam.org/cdr/descargas/censos/poblacion/CP2017PER.zip",
+#'   zip, mode = "wb"
+#' )
+#' unzip(zip, exdir = tempdir())
+#' cpv_convertir(file.path(tempdir(), "BaseD/BaseR/CPVPER2017D.dicX"))
 #' }
 cpv_convertir <- function(dicx, destino = cpv_dir(), sobrescribir = FALSE) {
   dicx <- normalizePath(dicx, mustWork = TRUE)

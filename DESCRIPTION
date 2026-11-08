@@ -7,9 +7,11 @@ Authors@R: person("Denis", "Rodriguez", email = "denisyenrc@gmail.com",
 Description: Query the microdata of the 2017 National Population and Housing
     Census of Peru ('Censo Nacional de Población y Vivienda 2017'), published
     by the National Institute of Statistics and Informatics ('INEI') in
-    'REDATAM' format, using 'dplyr' verbs without loading its 29 million
-    person records into memory. Provides a download of the census already
-    converted to compressed 'Parquet' files, a native reader for the
+    'REDATAM' format
+    (<https://prod.redatam.org/cdr/descargas/censos/poblacion/CP2017PER.zip>),
+    using 'dplyr' verbs without loading its 29 million person records into
+    memory. Provides a download of the census already converted
+    to compressed 'Parquet' files, a native reader for the
     'REDATAM' formats ('.dicX', '.ptr' and 'PCK', 'CHR' and 'DBL' '.rbf'
     files) to convert the original database, the variable dictionary, and
     helpers to recode missing-value codes and to label categories. The

@@ -4,7 +4,7 @@ Consulta los microdatos del **Censo Nacional de Población y Vivienda 2017 del P
 
 Los datos ya vienen convertidos a archivos Parquet (unos 900 MB, frente a 1.7 GB de la base REDATAM original) y se consultan de forma perezosa con [arrow](https://arrow.apache.org/docs/r/).
 
-Fuente de los datos: base REDATAM del CPV 2017 del INEI, de libre acceso en el portal REDATAM.
+Fuente de los datos: base REDATAM del CPV 2017 del INEI, de libre acceso en el portal REDATAM de CEPAL ([CP2017PER.zip](https://prod.redatam.org/cdr/descargas/censos/poblacion/CP2017PER.zip), 679 MB).
 
 ## 1. Instalar y descargar los datos (una sola vez)
 
@@ -117,7 +117,7 @@ y agrega a tu `.Renviron` (`usethis::edit_r_environ()`) la línea `CPV2017_DIR=D
 
 ### Convertir la base REDATAM por tu cuenta
 
-No es necesario para usar el paquete. Sirve para verificar los datos publicados desde la fuente original del INEI, o si la descarga no estuviera disponible. Con la base REDATAM descomprimida (~3–4 minutos):
+No es necesario para usar el paquete. Sirve para verificar los datos publicados desde la fuente original, o si la descarga no estuviera disponible. Descarga y descomprime la base oficial ([CP2017PER.zip](https://prod.redatam.org/cdr/descargas/censos/poblacion/CP2017PER.zip), 679 MB) y conviértela (~3–4 minutos):
 
 ```r
 cpv_convertir("ruta/a/BaseD/BaseR/CPVPER2017D.dicX", destino = "ruta/a/datos_cpv2017")

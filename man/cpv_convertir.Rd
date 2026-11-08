@@ -30,9 +30,20 @@ identificadores de sus entidades superiores (por ejemplo, \code{persona} trae
 \code{hogar_id} y \code{vivienda_id}) y, en vivienda, hogar y persona, el \code{ubigeo}
 del distrito (6 dígitos). Los valores se guardan con los códigos originales
 de REDATAM, incluidos los de "no aplica" y "sin dato" (ver \code{\link[=cpv_na]{cpv_na()}}).
+
+La base oficial está en el portal REDATAM de CEPAL:
+\url{https://prod.redatam.org/cdr/descargas/censos/poblacion/CP2017PER.zip}
+(679 MB). Al descomprimirla, el diccionario queda en
+\code{BaseD/BaseR/CPVPER2017D.dicX}.
 }
 \examples{
 \dontrun{
-cpv_convertir("D:/CP2017PER/BaseD/BaseR/CPVPER2017D.dicX")
+zip <- file.path(tempdir(), "CP2017PER.zip")
+download.file(
+  "https://prod.redatam.org/cdr/descargas/censos/poblacion/CP2017PER.zip",
+  zip, mode = "wb"
+)
+unzip(zip, exdir = tempdir())
+cpv_convertir(file.path(tempdir(), "BaseD/BaseR/CPVPER2017D.dicX"))
 }
 }
