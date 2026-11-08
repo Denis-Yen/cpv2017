@@ -2,42 +2,21 @@
 
 Consulta los microdatos del **Censo Nacional de Población y Vivienda 2017 del Perú** (INEI) con `dplyr`, sin REDATAM y sin cargar 29 millones de registros en memoria.
 
-El paquete convierte una sola vez la base REDATAM a archivos Parquet (unos 900 MB, frente a 1.7 GB de la base original) y luego los consulta de forma perezosa con [arrow](https://arrow.apache.org/docs/r/).
+Los datos ya vienen convertidos a archivos Parquet (unos 900 MB, frente a 1.7 GB de la base REDATAM original) y se consultan de forma perezosa con [arrow](https://arrow.apache.org/docs/r/).
 
-## Instalación
+Fuente de los datos: base REDATAM del CPV 2017 del INEI, de libre acceso en el portal REDATAM.
+
+## 1. Instalar y descargar los datos (una sola vez)
 
 ```r
 # install.packages("remotes")
 remotes::install_github("denis-yen/cpv2017")
-```
 
-Fuente de los datos: base REDATAM del CPV 2017 del INEI, de libre acceso en el portal REDATAM.
-
-## 1. Obtener los datos (una sola vez)
-
-**Opción A — descargarlos ya convertidos** (~940 MB):
-
-```r
 library(cpv2017)
-cpv_descargar()   # baja los datos del release "datos-v1" de este repositorio
+cpv_descargar()   # ~940 MB
 ```
 
-Cada archivo se verifica con su firma MD5. Si la conexión se corta, vuelve a ejecutar `cpv_descargar()`: solo baja lo que falta.
-
-**Opción B — convertir tu copia de la base REDATAM** (~3–4 minutos):
-
-```r
-library(cpv2017)
-cpv_convertir("ruta/a/BaseD/BaseR/CPVPER2017D.dicX", destino = "ruta/a/datos_cpv2017")
-```
-
-Para que el paquete encuentre los datos en cada sesión, agrega a tu `.Renviron` (`usethis::edit_r_environ()`):
-
-```
-CPV2017_DIR=ruta/a/datos_cpv2017
-```
-
-O, solo para la sesión actual: `cpv_usar_dir("ruta/a/datos_cpv2017")`.
+Eso es todo: no necesitas la base REDATAM. Cada archivo se verifica con su firma MD5, y si la conexión se corta basta con volver a ejecutar `cpv_descargar()` (solo baja lo que falta). En las siguientes sesiones el paquete encuentra los datos solo.
 
 ## 2. Consultar
 
@@ -107,9 +86,9 @@ Para ver la viñeta instalada: `remotes::install_github("denis-yen/cpv2017", bui
 
 | Función | Para qué sirve |
 |---|---|
-| `cpv_descargar()` | Descarga los datos ya convertidos y verifica cada archivo. |
-| `cpv_convertir()` | Convierte la base REDATAM a Parquet. |
-| `cpv_manifiesto()` | Para publicar: genera `manifiesto.csv` con tamaño y MD5 de cada archivo. |
+| `cpv_descargar()` | Descarga los datos y verifica cada archivo. |
+| `cpv_convertir()` | (Avanzado) Convierte la base REDATAM a Parquet. |
+| `cpv_manifiesto()` | (Avanzado) Para publicar: genera `manifiesto.csv` con tamaño y MD5 de cada archivo. |
 | `cpv_tbl()` | Abre una tabla para consultarla con dplyr. |
 | `cpv_variables()` | Busca variables por nombre o etiqueta (`cpv_variables("agua")`). |
 | `cpv_etiquetas()` | Muestra los códigos de una variable (`cpv_etiquetas("c5p2")`). |
@@ -122,3 +101,26 @@ Para ver la viñeta instalada: `remotes::install_github("denis-yen/cpv2017", bui
 - Los datos conservan los códigos originales de REDATAM. Usa `cpv_na()` antes de calcular promedios o porcentajes.
 - Contar filas da la **población censada**; sumar `factorpond` estima la **población total** (con omisión censal).
 - El paquete lee los archivos REDATAM con un lector propio (`.dicX`, `.ptr` y `.rbf` en formato PCK, CHR y DBL). No usa `redatam::read_redatam()`, que en esta base omite 21 variables y daña las tildes.
+
+## Uso avanzado
+
+### Guardar los datos en otra carpeta
+
+Por defecto se guardan en la carpeta de datos de usuario de R (`cpv_dir()`). Para usar otra:
+
+```r
+cpv_descargar(destino = "D:/datos/cpv2017")
+```
+
+y agrega a tu `.Renviron` (`usethis::edit_r_environ()`) la línea `CPV2017_DIR=D:/datos/cpv2017`, o usa `cpv_usar_dir("D:/datos/cpv2017")` en cada sesión.
+
+### Convertir la base REDATAM por tu cuenta
+
+No es necesario para usar el paquete. Sirve para verificar los datos publicados desde la fuente original del INEI, o si la descarga no estuviera disponible. Con la base REDATAM descomprimida (~3–4 minutos):
+
+```r
+cpv_convertir("ruta/a/BaseD/BaseR/CPVPER2017D.dicX", destino = "ruta/a/datos_cpv2017")
+cpv_usar_dir("ruta/a/datos_cpv2017")
+```
+
+`cpv_manifiesto()` genera el `manifiesto.csv` (tamaño y MD5 de cada archivo) necesario para publicar los datos convertidos en otro lugar; `cpv_descargar(url = ...)` los descarga desde ahí.
