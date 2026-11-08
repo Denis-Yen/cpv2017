@@ -19,7 +19,7 @@ Fuente de los datos: base REDATAM del CPV 2017 del INEI, de libre acceso en el p
 
 ```r
 library(cpv2017)
-cpv_descargar()   # usa la URL configurada en CPV2017_URL o la del paquete
+cpv_descargar()   # baja los datos del release "datos-v1" de este repositorio
 ```
 
 Cada archivo se verifica con su firma MD5. Si la conexión se corta, vuelve a ejecutar `cpv_descargar()`: solo baja lo que falta.

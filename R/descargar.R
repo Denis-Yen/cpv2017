@@ -1,6 +1,6 @@
 # URL predeterminada de los datos publicados (carpeta o release que contiene
-# manifiesto.csv y los .parquet). Vacía hasta que se publiquen los datos.
-URL_DATOS <- ""
+# manifiesto.csv y los .parquet).
+URL_DATOS <- "https://github.com/Denis-Yen/cpv2017/releases/download/datos-v1"
 
 #' URL de descarga de los datos convertidos
 #'
