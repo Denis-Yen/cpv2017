@@ -95,6 +95,7 @@ Para ver la viñeta instalada: `remotes::install_github("denis-yen/cpv2017", bui
 | `cpv_etiquetar()` | Convierte códigos en etiquetas (factores) tras `collect()`. |
 | `cpv_na()` | Convierte los códigos de "no aplica" y "sin dato" en `NA`. |
 | `cpv_geo()` | Tabla de ubigeos con nombres de departamento, provincia y distrito. |
+| `cpv_ejemplo()` | Muestra incluida de dos distritos, para probar sin descargar (`dir = cpv_ejemplo()`). |
 
 ## Notas
 

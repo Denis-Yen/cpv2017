@@ -19,10 +19,11 @@ distrito, útil para unir (\code{left_join()}) con resultados agregados.
 Tabla de ubigeos con sus nombres
 }
 \examples{
-\dontrun{
-cpv_tbl("persona") |>
+library(dplyr)
+muestra <- cpv_ejemplo()
+
+cpv_tbl("persona", dir = muestra) |>
   count(ubigeo) |>
   collect() |>
-  left_join(cpv_geo(), by = "ubigeo")
-}
+  left_join(cpv_geo(dir = muestra), by = "ubigeo")
 }

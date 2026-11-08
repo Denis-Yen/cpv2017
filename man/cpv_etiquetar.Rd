@@ -26,10 +26,11 @@ factores ordenados según el código. Se aplica a datos ya traídos con
 \code{collect()}.
 }
 \examples{
-\dontrun{
-cpv_tbl("hogar") |>
+library(dplyr)
+muestra <- cpv_ejemplo()
+
+cpv_tbl("hogar", dir = muestra) |>
   count(c3p213) |>
   collect() |>
-  cpv_etiquetar()
-}
+  cpv_etiquetar(dir = muestra)
 }

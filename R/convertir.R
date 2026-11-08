@@ -39,8 +39,8 @@ cpv_convertir <- function(dicx, destino = cpv_dir(), sobrescribir = FALSE) {
   ent <- dic$entidades
   vars <- dic$variables
 
-  ubigeo <- list()  # código geográfico acumulado de cada registro, por entidad
-  ancest <- list()  # ids de entidades superiores no geográficas, por entidad
+  ubigeo <- list()  # codigo geografico acumulado de cada registro, por entidad
+  ancest <- list()  # ids de entidades superiores no geograficas, por entidad
   ent$n_registros <- NA_integer_
 
   for (i in seq_len(nrow(ent))) {
@@ -123,7 +123,7 @@ cpv_convertir <- function(dicx, destino = cpv_dir(), sobrescribir = FALSE) {
                        file.path(destino, "diccionario_variables.parquet"))
   arrow::write_parquet(dic$etiquetas, file.path(destino, "diccionario_etiquetas.parquet"))
   limpiar_cache()
-  message("Conversión terminada en ", format_tiempo(t0), ": ", destino)
+  message("Conversi\u00f3n terminada en ", format_tiempo(t0), ": ", destino)
   invisible(destino)
 }
 

@@ -37,7 +37,7 @@ leer_pck <- function(archivo, nbits, n, bloque = 2^15) {
 leer_chr <- function(archivo, ancho, n) {
   raw <- readBin(archivo, "raw", file.size(archivo))
   if (length(raw) < ancho * n) {
-    stop("El archivo ", basename(archivo), " es más corto de lo esperado.", call. = FALSE)
+    stop("El archivo ", basename(archivo), " es m\u00e1s corto de lo esperado.", call. = FALSE)
   }
   m <- matrix(raw[seq_len(ancho * n)], nrow = ancho)
   txt <- apply(m, 2, function(b) rawToChar(b[b != as.raw(0)]))
@@ -48,7 +48,7 @@ leer_chr <- function(archivo, ancho, n) {
 leer_dbl <- function(archivo, n) {
   x <- readBin(archivo, "double", n, size = 8, endian = "little")
   if (length(x) != n) {
-    stop("El archivo ", basename(archivo), " es más corto de lo esperado.", call. = FALSE)
+    stop("El archivo ", basename(archivo), " es m\u00e1s corto de lo esperado.", call. = FALSE)
   }
   x
 }
@@ -58,7 +58,7 @@ leer_dbl <- function(archivo, n) {
 leer_ptr <- function(archivo) {
   x <- readBin(archivo, "integer", file.size(archivo) / 4, size = 4, endian = "little")
   if (!length(x) || x[1] != 0 || is.unsorted(x)) {
-    stop("Archivo de punteros inválido: ", basename(archivo), call. = FALSE)
+    stop("Archivo de punteros inv\u00e1lido: ", basename(archivo), call. = FALSE)
   }
   x
 }

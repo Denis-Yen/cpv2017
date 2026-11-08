@@ -1,0 +1,13 @@
+test_that("la muestra incluida se puede consultar", {
+  m <- cpv_ejemplo()
+  expect_true(dir.exists(m))
+  per <- dplyr::collect(cpv_tbl("persona", dir = m))
+  expect_identical(nrow(per), 391L)
+  expect_setequal(unique(per$ubigeo), c("040403", "151013"))
+  expect_true(all(per$hogar_id %in% dplyr::collect(cpv_tbl("hogar", dir = m))$hogar_id))
+  geo <- cpv_geo(dir = m)
+  expect_identical(nrow(geo), 2L)
+  expect_true("Ayo" %in% geo$distrito)
+  sexo <- cpv_etiquetar(dplyr::count(per, c5p2), c5p2, dir = m)
+  expect_setequal(as.character(sexo$c5p2), c("Hombre", "Mujer"))
+})

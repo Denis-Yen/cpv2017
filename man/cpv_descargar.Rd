@@ -34,6 +34,7 @@ conexión se corta basta con volver a ejecutar la función.
 }
 \examples{
 \dontrun{
+# Descarga unos 940 MB
 cpv_descargar()
 cpv_tbl("persona") |> dplyr::count() |> dplyr::collect()
 }

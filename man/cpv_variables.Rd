@@ -23,8 +23,7 @@ variable es \code{"categórica"} o \code{"numérica"} (edad, horas, cantidades..
 Buscar variables en el diccionario
 }
 \examples{
-\dontrun{
-cpv_variables("internet")
-cpv_variables(entidad = "vivienda")
-}
+muestra <- cpv_ejemplo()   # con los datos completos, omite `dir`
+cpv_variables("internet", dir = muestra)
+cpv_variables(entidad = "vivienda", dir = muestra)
 }

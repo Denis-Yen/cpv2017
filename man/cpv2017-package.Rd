@@ -21,12 +21,20 @@ La variable \code{factorpond} de la tabla persona es el factor de ponderación
 del INEI: la suma de \code{factorpond} estima la población total (con omisión
 censal), mientras que el conteo de filas es la población censada.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/Denis-Yen/cpv2017}
+  \item Report bugs at \url{https://github.com/Denis-Yen/cpv2017/issues}
+}
+
+}
 \author{
-\strong{Maintainer}: Denis Rodriguez \email{denisyenrc@gmail.com}
+\strong{Maintainer}: Denis Rodriguez \email{denisyenrc@gmail.com} [copyright holder]
 
 Authors:
 \itemize{
-  \item Denis Rodriguez \email{denisyenrc@gmail.com}
+  \item Denis Rodriguez \email{denisyenrc@gmail.com} [copyright holder]
 }
 
 }

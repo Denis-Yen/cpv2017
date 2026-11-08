@@ -25,6 +25,23 @@ cpv_usar_dir <- function(ruta) {
   invisible(ruta)
 }
 
+#' Carpeta con la muestra de datos incluida en el paquete
+#'
+#' El paquete incluye una muestra pequeña con todas las tablas del censo
+#' restringidas a dos distritos: Ayo (Arequipa, ubigeo `040403`) y Huampara
+#' (Lima, `151013`), con 391 personas, 203 hogares y 456 viviendas, además del
+#' diccionario completo. Sirve para probar las funciones sin descargar los
+#' datos completos: pasa `dir = cpv_ejemplo()` a cualquier función del paquete.
+#'
+#' @return La ruta de la carpeta de la muestra.
+#' @export
+#' @examples
+#' muestra <- cpv_ejemplo()
+#' cpv_tbl("persona", dir = muestra)
+cpv_ejemplo <- function() {
+  system.file("extdata", "muestra", package = "cpv2017", mustWork = TRUE)
+}
+
 alias_entidades <- c(
   departamento = "departam", departamentos = "departam", departam = "departam",
   provincia = "provinci", provincias = "provinci", provinci = "provinci",
@@ -37,7 +54,7 @@ alias_entidades <- c(
 ruta_parquet <- function(nombre, dir = cpv_dir()) {
   f <- file.path(dir, paste0(nombre, ".parquet"))
   if (!file.exists(f)) {
-    stop("No se encontró ", f, ".\nConvierte primero la base con cpv_convertir() ",
+    stop("No se encontr\u00f3 ", f, ".\nDescarga primero los datos con cpv_descargar() ",
          "o indica la carpeta con cpv_usar_dir().", call. = FALSE)
   }
   f
@@ -56,16 +73,15 @@ ruta_parquet <- function(nombre, dir = cpv_dir()) {
 #' @return Un `arrow::Dataset`.
 #' @export
 #' @examples
-#' \dontrun{
 #' library(dplyr)
+#' muestra <- cpv_ejemplo()   # con los datos completos, omite `dir`
 #'
-#' # Población censada por sexo en Lima (departamento 15)
-#' cpv_tbl("persona") |>
-#'   filter(substr(ubigeo, 1, 2) == "15") |>
+#' # Población censada por sexo en el distrito de Ayo (ubigeo 040403)
+#' cpv_tbl("persona", dir = muestra) |>
+#'   filter(ubigeo == "040403") |>
 #'   count(c5p2) |>
 #'   collect() |>
-#'   cpv_etiquetar(c5p2)
-#' }
+#'   cpv_etiquetar(c5p2, dir = muestra)
 cpv_tbl <- function(entidad, dir = cpv_dir()) {
   clave <- alias_entidades[tolower(entidad)]
   if (length(entidad) != 1 || is.na(clave)) {
@@ -98,10 +114,9 @@ leer_diccionario <- function(cual, dir = cpv_dir()) {
 #'   variable es `"categórica"` o `"numérica"` (edad, horas, cantidades...).
 #' @export
 #' @examples
-#' \dontrun{
-#' cpv_variables("internet")
-#' cpv_variables(entidad = "vivienda")
-#' }
+#' muestra <- cpv_ejemplo()   # con los datos completos, omite `dir`
+#' cpv_variables("internet", dir = muestra)
+#' cpv_variables(entidad = "vivienda", dir = muestra)
 cpv_variables <- function(buscar = NULL, entidad = NULL, dir = cpv_dir()) {
   v <- leer_diccionario("variables", dir)
   if (!is.null(entidad)) {
@@ -120,6 +135,8 @@ cpv_variables <- function(buscar = NULL, entidad = NULL, dir = cpv_dir()) {
 #' @param dir Carpeta de los Parquet.
 #' @return Un tibble con el código (`valor`) y su `etiqueta`.
 #' @export
+#' @examples
+#' cpv_etiquetas("c2p6", dir = cpv_ejemplo())
 cpv_etiquetas <- function(variable, dir = cpv_dir()) {
   e <- leer_diccionario("etiquetas", dir)
   e[e$variable == tolower(variable), c("variable", "valor", "etiqueta")]
@@ -138,6 +155,15 @@ cpv_etiquetas <- function(variable, dir = cpv_dir()) {
 #' @param dir Carpeta de los Parquet.
 #' @return `data` con los códigos reemplazados por `NA`.
 #' @export
+#' @examples
+#' library(dplyr)
+#' muestra <- cpv_ejemplo()
+#'
+#' # Edad promedio: sin cpv_na() se contarían los códigos 116 y 117 como edades
+#' cpv_tbl("persona", dir = muestra) |>
+#'   cpv_na(c5p41, dir = muestra) |>
+#'   summarise(edad_promedio = mean(c5p41, na.rm = TRUE)) |>
+#'   collect()
 cpv_na <- function(data, ..., dir = cpv_dir()) {
   cols <- columnas(data, ..., dir = dir)
   v <- leer_diccionario("variables", dir)
@@ -171,12 +197,13 @@ cpv_na <- function(data, ..., dir = cpv_dir()) {
 #' @return `data` con las columnas etiquetadas como factores.
 #' @export
 #' @examples
-#' \dontrun{
-#' cpv_tbl("hogar") |>
+#' library(dplyr)
+#' muestra <- cpv_ejemplo()
+#'
+#' cpv_tbl("hogar", dir = muestra) |>
 #'   count(c3p213) |>
 #'   collect() |>
-#'   cpv_etiquetar()
-#' }
+#'   cpv_etiquetar(dir = muestra)
 cpv_etiquetar <- function(data, ..., na = TRUE, dir = cpv_dir()) {
   if (!is.data.frame(data) || inherits(data, c("arrow_dplyr_query", "ArrowObject"))) {
     stop("cpv_etiquetar() trabaja sobre datos en R: usa collect() antes.", call. = FALSE)
@@ -184,7 +211,7 @@ cpv_etiquetar <- function(data, ..., na = TRUE, dir = cpv_dir()) {
   v <- leer_diccionario("variables", dir)
   e <- leer_diccionario("etiquetas", dir)
   cols <- if (...length()) columnas(data, ..., dir = dir) else
-    intersect(names(data), v$variable[v$tipo == "categórica"])
+    intersect(names(data), v$variable[v$tipo == "categ\u00f3rica"])
   if (na) data <- cpv_na(data, tidyselect::all_of(cols), dir = dir)
   for (col in cols) {
     et <- e[e$variable == col, ]
@@ -193,7 +220,7 @@ cpv_etiquetar <- function(data, ..., na = TRUE, dir = cpv_dir()) {
     clave <- if (is.character(x)) et$valor else suppressWarnings(as.numeric(et$valor))
     ok <- !is.na(clave)
     clave <- clave[ok]; lab <- et$etiqueta[ok]
-    sin <- setdiff(stats::na.omit(unique(x)), clave)  # códigos sin etiqueta
+    sin <- setdiff(stats::na.omit(unique(x)), clave)  # codigos sin etiqueta
     niveles <- c(clave, sin)
     etiquetas <- c(lab, as.character(sin))
     orden <- order(niveles)
@@ -211,12 +238,13 @@ cpv_etiquetar <- function(data, ..., na = TRUE, dir = cpv_dir()) {
 #'   distrito, útil para unir (`left_join()`) con resultados agregados.
 #' @export
 #' @examples
-#' \dontrun{
-#' cpv_tbl("persona") |>
+#' library(dplyr)
+#' muestra <- cpv_ejemplo()
+#'
+#' cpv_tbl("persona", dir = muestra) |>
 #'   count(ubigeo) |>
 #'   collect() |>
-#'   left_join(cpv_geo(), by = "ubigeo")
-#' }
+#'   left_join(cpv_geo(dir = muestra), by = "ubigeo")
 cpv_geo <- function(nivel = c("distrito", "provincia", "departamento"), dir = cpv_dir()) {
   nivel <- match.arg(nivel)
   leer <- function(x) tibble::as_tibble(arrow::read_parquet(ruta_parquet(x, dir)))

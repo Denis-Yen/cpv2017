@@ -1,16 +1,22 @@
 Package: cpv2017
 Type: Package
-Title: Censo de Población y Vivienda 2017 del Perú para el 'tidyverse'
+Title: Microdata of the 2017 Population and Housing Census of Peru
 Version: 0.1.0
 Authors@R: person("Denis", "Rodriguez", email = "denisyenrc@gmail.com",
-    role = c("aut", "cre"))
-Description: Convierte la base REDATAM del Censo Nacional de Población y
-    Vivienda 2017 del Perú (INEI) a archivos 'Parquet' comprimidos y permite
-    consultar sus microdatos (vivienda, hogar y persona) con 'dplyr' sin
-    cargarlos en memoria. Incluye un lector propio de los formatos REDATAM
-    (.dicX, .ptr y .rbf PCK/CHR/DBL), el diccionario de variables y funciones
-    para etiquetar códigos.
+    role = c("aut", "cre", "cph"))
+Description: Query the microdata of the 2017 National Population and Housing
+    Census of Peru ('Censo Nacional de Población y Vivienda 2017'), published
+    by the National Institute of Statistics and Informatics ('INEI') in
+    'REDATAM' format, using 'dplyr' verbs without loading its 29 million
+    person records into memory. Provides a download of the census already
+    converted to compressed 'Parquet' files, a native reader for the
+    'REDATAM' formats ('.dicX', '.ptr' and 'PCK', 'CHR' and 'DBL' '.rbf'
+    files) to convert the original database, the variable dictionary, and
+    helpers to recode missing-value codes and to label categories. The
+    documentation is in Spanish.
 License: MIT + file LICENSE
+URL: https://github.com/Denis-Yen/cpv2017
+BugReports: https://github.com/Denis-Yen/cpv2017/issues
 Encoding: UTF-8
 Language: es
 Depends: R (>= 4.1)

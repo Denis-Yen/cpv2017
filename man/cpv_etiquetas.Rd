@@ -17,3 +17,6 @@ Un tibble con el código (\code{valor}) y su \code{etiqueta}.
 \description{
 Ver las etiquetas (categorías) de una variable
 }
+\examples{
+cpv_etiquetas("c2p6", dir = cpv_ejemplo())
+}

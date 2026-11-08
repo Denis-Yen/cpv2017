@@ -64,7 +64,7 @@ leer_dicx <- function(dicx) {
 
   variables$tipo <- vapply(variables$variable, function(v) {
     e <- etiquetas[etiquetas$variable == v, ]
-    if (!nrow(e)) "sin etiquetas" else if (es_numerica(e$valor, e$etiqueta)) "numérica" else "categórica"
+    if (!nrow(e)) "sin etiquetas" else if (es_numerica(e$valor, e$etiqueta)) "num\u00e9rica" else "categ\u00f3rica"
   }, "", USE.NAMES = FALSE)
 
   if (anyDuplicated(variables$variable)) {

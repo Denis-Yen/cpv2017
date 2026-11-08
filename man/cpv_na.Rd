@@ -23,3 +23,13 @@ REDATAM guarda con un código propio los casos en que la pregunta no aplica
 Esta función los convierte en \code{NA}. Funciona tanto con datos ya traídos con
 \code{collect()} como con una consulta sin ejecutar de \code{\link[=cpv_tbl]{cpv_tbl()}}.
 }
+\examples{
+library(dplyr)
+muestra <- cpv_ejemplo()
+
+# Edad promedio: sin cpv_na() se contarían los códigos 116 y 117 como edades
+cpv_tbl("persona", dir = muestra) |>
+  cpv_na(c5p41, dir = muestra) |>
+  summarise(edad_promedio = mean(c5p41, na.rm = TRUE)) |>
+  collect()
+}

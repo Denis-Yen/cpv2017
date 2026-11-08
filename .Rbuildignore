@@ -2,3 +2,5 @@
 ^\.Rproj\.user$
 ^README\.Rmd$
 ^\.gitignore$
+^data-raw$
+^cran-comments\.md$

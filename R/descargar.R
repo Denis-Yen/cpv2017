@@ -37,6 +37,7 @@ cpv_url <- function() {
 #' @export
 #' @examples
 #' \dontrun{
+#' # Descarga unos 940 MB
 #' cpv_descargar()
 #' cpv_tbl("persona") |> dplyr::count() |> dplyr::collect()
 #' }
@@ -72,8 +73,8 @@ cpv_descargar <- function(destino = cpv_dir(), url = cpv_url(), sobrescribir = F
     bajar(paste0(url, "/", a$archivo), parcial, quiet = a$bytes < 5e6)
     if (!archivo_ok(parcial, a)) {
       unlink(parcial)
-      stop("El archivo ", a$archivo, " llegó incompleto o dañado (no coincide su ",
-           "tamaño o firma MD5). Vuelve a ejecutar cpv_descargar().", call. = FALSE)
+      stop("El archivo ", a$archivo, " lleg\u00f3 incompleto o da\u00f1ado (no coincide su ",
+           "tama\u00f1o o firma MD5). Vuelve a ejecutar cpv_descargar().", call. = FALSE)
     }
     unlink(final)
     file.rename(parcial, final)
@@ -112,7 +113,7 @@ bajar <- function(url, archivo, quiet = FALSE) {
                 error = function(e) e, warning = function(w) w)
   if (inherits(r, "condition") || !identical(as.integer(r), 0L)) {
     unlink(archivo)
-    detalle <- if (inherits(r, "condition")) conditionMessage(r) else paste("código", r)
+    detalle <- if (inherits(r, "condition")) conditionMessage(r) else paste("c\u00f3digo", r)
     stop("No se pudo descargar ", url, "\n", detalle, call. = FALSE)
   }
 }
@@ -120,7 +121,7 @@ bajar <- function(url, archivo, quiet = FALSE) {
 leer_manifiesto <- function(archivo) {
   man <- utils::read.csv(archivo, colClasses = "character")
   if (!all(c("archivo", "bytes", "md5") %in% names(man)) || !nrow(man)) {
-    stop("El manifiesto descargado no es válido.", call. = FALSE)
+    stop("El manifiesto descargado no es v\u00e1lido.", call. = FALSE)
   }
   if (any(grepl("[/\\\\]|^\\.", man$archivo))) {
     stop("El manifiesto contiene nombres de archivo no permitidos.", call. = FALSE)

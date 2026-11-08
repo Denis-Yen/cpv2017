@@ -22,14 +22,13 @@ memoria. Se usa con los verbos de dplyr (\code{filter()}, \code{select()},
 trae a R con \code{collect()}.
 }
 \examples{
-\dontrun{
 library(dplyr)
+muestra <- cpv_ejemplo()   # con los datos completos, omite `dir`
 
-# Población censada por sexo en Lima (departamento 15)
-cpv_tbl("persona") |>
-  filter(substr(ubigeo, 1, 2) == "15") |>
+# Población censada por sexo en el distrito de Ayo (ubigeo 040403)
+cpv_tbl("persona", dir = muestra) |>
+  filter(ubigeo == "040403") |>
   count(c5p2) |>
   collect() |>
-  cpv_etiquetar(c5p2)
-}
+  cpv_etiquetar(c5p2, dir = muestra)
 }

@@ -3,6 +3,7 @@
 export(cpv_convertir)
 export(cpv_descargar)
 export(cpv_dir)
+export(cpv_ejemplo)
 export(cpv_etiquetar)
 export(cpv_etiquetas)
 export(cpv_geo)
