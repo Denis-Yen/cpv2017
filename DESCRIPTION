@@ -22,7 +22,12 @@ Imports:
     tidyselect,
     xml2
 Suggests:
-    testthat (>= 3.0.0)
+    knitr,
+    openxlsx,
+    rmarkdown,
+    testthat (>= 3.0.0),
+    writexl
+VignetteBuilder: knitr
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
 Config/roxygen2/version: 8.1.1

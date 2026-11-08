@@ -1,0 +1,326 @@
+---
+title: "Ejemplos de análisis con el CPV 2017"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Ejemplos de análisis con el CPV 2017}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+# Los ejemplos necesitan los datos del censo (~900 MB), que no vienen con el
+# paquete; por eso no se ejecutan al construir la viñeta. Los resultados que se
+# muestran son los obtenidos con los datos completos.
+knitr::opts_chunk$set(eval = FALSE, collapse = TRUE, comment = "#>")
+```
+
+Esta viñeta reúne tres ejemplos completos:
+
+1. Índice de envejecimiento por distrito y cómo guardarlo en Excel.
+2. Un indicador que cruza las tres entidades del censo: vivienda, hogar y persona.
+3. Cálculos con el factor de ponderación (`factorpond`).
+
+Antes de empezar, los datos deben estar descargados (`cpv_descargar()`) o
+convertidos (`cpv_convertir()`).
+
+```{r}
+library(cpv2017)
+library(dplyr)
+```
+
+La idea de todos los ejemplos es la misma: **filtrar y resumir con arrow antes
+de `collect()`**, para traer a memoria solo el resultado (unos cientos o miles
+de filas) y no los 29 millones de registros.
+
+## 1. Índice de envejecimiento por distrito
+
+El índice de envejecimiento es el número de personas de 60 años o más por cada
+100 menores de 15 años:
+
+$$IE = \frac{\text{población de 60 años y más}}{\text{población de 0 a 14 años}} \times 100$$
+
+La edad en años es la variable `c5p41`. Primero se aplica `cpv_na()` para que
+los códigos de "no aplica" y "sin dato" no se cuenten como edades.
+
+```{r}
+cpv_variables("edad")
+cpv_tbl("persona") |> cpv_na(c5p41)   # 116 y 117 pasan a NA
+```
+
+```{r}
+ie_distrito <- cpv_tbl("persona") |>
+  cpv_na(c5p41) |>
+  group_by(ubigeo) |>
+  summarise(
+    poblacion  = n(),
+    pob_0_14   = sum(c5p41 <= 14, na.rm = TRUE),
+    pob_60_mas = sum(c5p41 >= 60, na.rm = TRUE)
+  ) |>
+  collect() |>
+  mutate(indice_envejecimiento = round(100 * pob_60_mas / pob_0_14, 1)) |>
+  left_join(cpv_geo("distrito"), by = "ubigeo") |>
+  relocate(ubigeo, departamento, provincia, distrito) |>
+  arrange(desc(indice_envejecimiento))
+
+ie_distrito
+#> # A tibble: 1,874 × 8
+#>   ubigeo departamento provincia      distrito          poblacion pob_0_14 pob_60_mas indice_envejecimiento
+#>   <chr>  <chr>        <chr>          <chr>                 <int>    <dbl>      <dbl>                 <dbl>
+#> 1 040403 Arequipa     Castilla       Ayo                     242       22         99                 450
+#> 2 151013 Lima         Yauyos         Huampara                149       19         62                 326.
+#> 3 051004 Ayacucho     Víctor Fajardo Asquipata               460       62        202                 326.
+#> 4 230402 Tacna        Tarata         Héroes Albarracín       306       35        109                 311.
+#> 5 150612 Lima         Huaral         Veintisiete de Noviembre 411       53        164                 309.
+#> # ℹ 1,869 more rows
+```
+
+En el distrito de Ayo hay 450 adultos mayores por cada 100 menores de 15 años.
+En el otro extremo están distritos amazónicos como Andoas (Loreto), con 3.9.
+
+El mismo indicador por departamento se obtiene sumando los distritos. No se
+promedian los índices distritales, porque cada distrito tiene un tamaño
+distinto.
+
+```{r}
+ie_departamento <- ie_distrito |>
+  group_by(departamento) |>
+  summarise(across(c(poblacion, pob_0_14, pob_60_mas), sum)) |>
+  mutate(indice_envejecimiento = round(100 * pob_60_mas / pob_0_14, 1)) |>
+  arrange(desc(indice_envejecimiento))
+
+ie_departamento
+#> # A tibble: 25 × 5
+#>   departamento poblacion pob_0_14 pob_60_mas indice_envejecimiento
+#>   <chr>            <int>    <dbl>      <dbl>                 <dbl>
+#> 1 Lima           9485405  2132876    1208563                  56.7
+#> 2 Moquegua        174863    40836      23137                  56.7
+#> 3 Arequipa       1382730   327945     172180                  52.5
+#> # ℹ 22 more rows
+```
+
+### Guardar en Excel
+
+La forma más simple es el paquete **writexl**, que no necesita Java ni Excel
+instalado. Si se pasa una lista con nombres, cada elemento se guarda en una
+hoja distinta:
+
+```{r}
+# install.packages("writexl")
+writexl::write_xlsx(
+  list(Distritos = ie_distrito, Departamentos = ie_departamento),
+  "indice_envejecimiento.xlsx"
+)
+```
+
+Para dar formato (encabezado en negrita, primera fila fija, ancho automático de
+columnas) se puede usar **openxlsx**:
+
+```{r}
+# install.packages("openxlsx")
+library(openxlsx)
+
+wb <- createWorkbook()
+encabezado <- createStyle(textDecoration = "bold", fgFill = "#DDEBF7")
+
+for (hoja in c("Distritos", "Departamentos")) {
+  datos <- if (hoja == "Distritos") ie_distrito else ie_departamento
+  addWorksheet(wb, hoja)
+  writeData(wb, hoja, datos, headerStyle = encabezado)
+  freezePane(wb, hoja, firstRow = TRUE)
+  setColWidths(wb, hoja, cols = seq_along(datos), widths = "auto")
+}
+
+saveWorkbook(wb, "indice_envejecimiento.xlsx", overwrite = TRUE)
+```
+
+> **Ojo con `ubigeo`:** guárdalo como texto, como hacen los dos ejemplos. Si
+> se convierte a número, Excel pierde el cero inicial (`010101` pasa a ser
+> `10101`).
+
+## 2. Un indicador que cruza vivienda, hogar y persona
+
+Cada tabla tiene identificadores que la enlazan con las demás:
+
+| Tabla | Identificadores |
+|---|---|
+| `vivienda` | `vivienda_id` |
+| `hogar` | `hogar_id`, `vivienda_id` |
+| `persona` | `persona_id`, `hogar_id`, `vivienda_id` |
+
+**Indicador:** porcentaje de niñas y niños de 0 a 4 años que viven en un
+**hogar** que cocina con leña o bosta y en una **vivienda** sin agua por red
+pública. Ambas son condiciones de riesgo para la salud infantil.
+
+| Entidad | Condición | Variable |
+|---|---|---|
+| Persona | Edad de 0 a 4 años | `c5p41 <= 4` |
+| Hogar | Cocina con leña o con bosta/estiércol | `c3p15 == 1` o `c3p16 == 1` |
+| Vivienda | El agua no viene de la red pública | `c2p6 >= 3` (1 y 2 son red pública) |
+
+```{r}
+cpv_etiquetas("c2p6")    # abastecimiento de agua
+cpv_etiquetas("c3p15")   # cocina con leña
+```
+
+**Paso 1.** De cada tabla se toman solo el identificador y la condición ya
+calculada. Así los cruces mueven muy pocas columnas.
+
+```{r}
+vivienda <- cpv_tbl("vivienda") |>
+  cpv_na(c2p6) |>
+  transmute(vivienda_id, sin_agua_red = c2p6 >= 3)
+
+hogar <- cpv_tbl("hogar") |>
+  cpv_na(c3p15, c3p16) |>
+  transmute(hogar_id, cocina_lena_bosta = c3p15 == 1 | c3p16 == 1)
+```
+
+**Paso 2.** Se filtra a los niños, se cruzan las tres tablas y se resume por
+departamento. Todo ocurre en arrow hasta el `collect()`.
+
+```{r}
+riesgo_infantil <- cpv_tbl("persona") |>
+  cpv_na(c5p41) |>
+  filter(c5p41 <= 4) |>
+  select(hogar_id, vivienda_id, ubigeo) |>
+  left_join(hogar, by = "hogar_id") |>
+  left_join(vivienda, by = "vivienda_id") |>
+  # Las viviendas colectivas (cárceles, albergues...) no tienen datos de
+  # hogar ni de vivienda: quedan en NA y se excluyen.
+  filter(!is.na(cocina_lena_bosta), !is.na(sin_agua_red)) |>
+  mutate(en_riesgo = cocina_lena_bosta & sin_agua_red) |>
+  group_by(ccdd = substr(ubigeo, 1, 2)) |>
+  summarise(ninos = n(), ninos_riesgo = sum(en_riesgo)) |>
+  collect() |>
+  mutate(pct_riesgo = round(100 * ninos_riesgo / ninos, 1)) |>
+  left_join(cpv_geo("departamento"), by = c("ccdd" = "ubigeo")) |>
+  relocate(departamento) |>
+  arrange(desc(pct_riesgo))
+
+riesgo_infantil
+#> # A tibble: 25 × 5
+#>    departamento  ccdd   ninos ninos_riesgo pct_riesgo
+#>    <chr>         <chr>  <int>        <dbl>      <dbl>
+#>  1 Loreto        16    100544        49277       49
+#>  2 Puno          21     89438        30547       34.2
+#>  3 Amazonas      01     38580        13046       33.8
+#>  4 Huánuco       10     67514        22666       33.6
+#>  5 Pasco         19     22515         6498       28.9
+#>  ...
+#> 24 Lima          15    692836        15037        2.2
+#> 25 Provincia Constitucional del Callao  07  78576  1044  1.3
+```
+
+En Loreto, casi la mitad de los niños menores de 5 años viven con las dos
+condiciones de riesgo; en Lima y el Callao, alrededor del 2%.
+
+**Variantes:**
+
+- Para obtenerlo por distrito, agrupa por `ubigeo` en lugar de
+  `substr(ubigeo, 1, 2)` y une con `cpv_geo("distrito")`.
+- Para un indicador "de hogares" (por ejemplo, hogares con niños en riesgo),
+  resume primero las personas por `hogar_id` y luego cruza con `hogar`.
+
+## 3. Cálculos con el factor de ponderación
+
+`factorpond` es el factor de expansión del INEI. Corrige la **omisión
+censal**, es decir, las personas que no fueron empadronadas. Su valor cambia de
+una persona a otra (entre 0.95 y 1.36), y por eso hay dos formas de contar:
+
+| Qué quieres | Cómo se calcula | Total nacional |
+|---|---|---|
+| Población **censada** | `n()` | 29,381,884 |
+| Población **total** estimada | `sum(factorpond)` | 31,237,385 |
+
+`factorpond` está solo en la tabla `persona`.
+
+### Población censada, total y omisión por departamento
+
+```{r}
+cpv_tbl("persona") |>
+  group_by(ccdd = substr(ubigeo, 1, 2)) |>
+  summarise(censada = n(), total = sum(factorpond)) |>
+  collect() |>
+  mutate(total = round(total),
+         omision_pct = round(100 * (total - censada) / total, 1)) |>
+  left_join(cpv_geo("departamento"), by = c("ccdd" = "ubigeo"))
+#> # A tibble: 25 × 5
+#>   ccdd  censada   total omision_pct departamento
+#>   <chr>   <int>   <dbl>       <dbl> <chr>
+#> 1 01     379384  417365         9.1 Amazonas
+#> 2 02    1083519 1139115         4.9 Áncash
+#> 3 03     405759  424259         4.4 Apurímac
+#> # ℹ 22 more rows
+```
+
+### Porcentajes e índices ponderados
+
+Un porcentaje ponderado es la suma de los factores de quienes cumplen la
+condición, dividida entre la suma de todos los factores:
+
+$$\%_{pond} = \frac{\sum_{i \,\in\, \text{condición}} factorpond_i}{\sum_i factorpond_i} \times 100$$
+
+En arrow se escribe con `if_else(condición, factorpond, 0)`. No uses
+`factorpond * (condición)`, porque arrow no multiplica números por valores
+lógicos.
+
+```{r}
+cpv_tbl("persona") |>
+  cpv_na(c5p41) |>
+  filter(!is.na(c5p41)) |>
+  summarise(
+    pct_60_mas      = 100 * sum(c5p41 >= 60) / n(),
+    pct_60_mas_pond = 100 * sum(if_else(c5p41 >= 60, factorpond, 0)) / sum(factorpond),
+    ie              = 100 * sum(c5p41 >= 60) / sum(c5p41 <= 14),
+    ie_pond         = 100 * sum(if_else(c5p41 >= 60, factorpond, 0)) /
+                            sum(if_else(c5p41 <= 14, factorpond, 0))
+  ) |>
+  collect()
+#>   pct_60_mas pct_60_mas_pond    ie ie_pond
+#> 1      11.90           11.67 45.11   44.08
+```
+
+Las cifras ponderadas son algo menores. La omisión censal fue mayor entre
+niños y jóvenes, así que al corregirla aumenta su peso relativo.
+
+El índice de envejecimiento distrital de la sección 1 se pondera igual:
+cambia `sum(c5p41 >= 60, na.rm = TRUE)` por
+`sum(if_else(c5p41 >= 60, factorpond, 0), na.rm = TRUE)`, y lo mismo para los
+menores de 15 años.
+
+### Ponderar un indicador de hogar con las personas
+
+Los hogares y las viviendas no tienen factor propio. Para expresar un
+indicador de hogar en términos de **población**, se cruza con `persona` y se
+suman los factores de sus miembros. Ejemplo: porcentaje de la población que
+vive en hogares con Internet, según área.
+
+```{r}
+cpv_tbl("persona") |>
+  select(hogar_id, factorpond) |>
+  inner_join(
+    cpv_tbl("hogar") |>
+      cpv_na(c3p213) |>
+      filter(!is.na(c3p213)) |>
+      select(hogar_id, harea, c3p213),
+    by = "hogar_id"
+  ) |>
+  group_by(harea) |>
+  summarise(poblacion = sum(factorpond),
+            con_internet = sum(if_else(c3p213 == 1, factorpond, 0))) |>
+  collect() |>
+  mutate(pct_internet = round(100 * con_internet / poblacion, 1)) |>
+  cpv_etiquetar(harea)
+#> # A tibble: 2 × 4
+#>   harea          poblacion con_internet pct_internet
+#>   <fct>              <dbl>        <dbl>        <dbl>
+#> 1 Rural censal    5563770.       85541.          1.5
+#> 2 Urbano censal  24866068.     9154122.         36.8
+```
+
+### Cuándo usar cada forma
+
+- **Sin ponderar** (`n()`): para reproducir los cuadros de población censada
+  del INEI y para conteos exactos de lo empadronado.
+- **Ponderado** (`sum(factorpond)`): para estimar la población total y para
+  porcentajes, tasas e índices que representen a toda la población.

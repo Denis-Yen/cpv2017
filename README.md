@@ -67,6 +67,31 @@ cpv_tbl("hogar") |>
   collect()
 ```
 
+## Ejemplos completos
+
+La viñeta [`vignettes/ejemplos.Rmd`](vignettes/ejemplos.Rmd) explica paso a paso:
+
+- **Índice de envejecimiento por distrito** y cómo guardarlo en Excel (`writexl` u `openxlsx`).
+- **Un indicador que cruza vivienda, hogar y persona**: niños de 0 a 4 años en hogares que cocinan con leña o bosta y en viviendas sin agua por red pública.
+- **Cálculos con el factor de ponderación**: población total, porcentajes e índices ponderados, y cómo ponderar indicadores de hogar.
+
+Muestra breve (índice de envejecimiento por distrito → Excel):
+
+```r
+ie <- cpv_tbl("persona") |>
+  cpv_na(c5p41) |>
+  group_by(ubigeo) |>
+  summarise(pob_0_14   = sum(c5p41 <= 14, na.rm = TRUE),
+            pob_60_mas = sum(c5p41 >= 60, na.rm = TRUE)) |>
+  collect() |>
+  mutate(indice_envejecimiento = round(100 * pob_60_mas / pob_0_14, 1)) |>
+  left_join(cpv_geo("distrito"), by = "ubigeo")
+
+writexl::write_xlsx(ie, "indice_envejecimiento.xlsx")
+```
+
+Para ver la viñeta instalada: `remotes::install_github("denis-yen/cpv2017", build_vignettes = TRUE)` y luego `vignette("ejemplos", "cpv2017")`.
+
 ## Tablas
 
 | Tabla | Registros | Enlaces |
