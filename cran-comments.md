@@ -1,6 +1,16 @@
-## Submission
+## Resubmission
 
-This is a new submission.
+This is a resubmission. The first submission failed the incoming pretest on
+Debian (r-devel-linux-x86_64-debian-gcc) because the 'arrow' build there does
+not include the 'zstd' codec. In this version:
+
+* The sample data in `inst/extdata` is stored uncompressed, so examples and
+  tests can read it with any 'arrow' build.
+* `cpv_convertir()` uses 'zstd' only when `arrow::codec_is_available("zstd")`,
+  and falls back to 'snappy', 'gzip' or no compression otherwise.
+* `cpv_descargar()` checks for 'zstd' before downloading the published data
+  (which is 'zstd'-compressed) and explains how to install a full 'arrow'
+  build if it is missing.
 
 ## R CMD check results
 

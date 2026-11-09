@@ -102,6 +102,7 @@ Para ver la viñeta instalada: `remotes::install_github("denis-yen/cpv2017", bui
 - Los datos conservan los códigos originales de REDATAM. Usa `cpv_na()` antes de calcular promedios o porcentajes.
 - Contar filas da la **población censada**; sumar `factorpond` estima la **población total** (con omisión censal).
 - El paquete lee los archivos REDATAM con un lector propio (`.dicX`, `.ptr` y `.rbf` en formato PCK, CHR y DBL). No usa `redatam::read_redatam()`, que en esta base omite 21 variables y daña las tildes.
+- **Linux:** los datos usan compresión zstd. Si `cpv_descargar()` avisa que tu `arrow` no la incluye, reinstálalo con `Sys.setenv(NOT_CRAN = "true"); install.packages("arrow")`.
 
 ## Uso avanzado
 

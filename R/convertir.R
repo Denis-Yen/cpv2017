@@ -112,8 +112,7 @@ cpv_convertir <- function(dicx, destino = cpv_dir(), sobrescribir = FALSE) {
     }
     tabla <- do.call(arrow::Table$create, cols)
     rm(cols, valores)
-    arrow::write_parquet(tabla, file.path(destino, paste0(e$entidad, ".parquet")),
-                         compression = "zstd", compression_level = 9)
+    escribir_parquet(tabla, file.path(destino, paste0(e$entidad, ".parquet")))
     rm(tabla)
     invisible(gc())
     message(sprintf("%-9s %11s registros  %3d variables  (%s)", e$entidad,
@@ -127,15 +126,42 @@ cpv_convertir <- function(dicx, destino = cpv_dir(), sobrescribir = FALSE) {
     }
   }
 
-  arrow::write_parquet(ent[, c("entidad", "padre", "etiqueta", "geografica", "n_registros")],
-                       file.path(destino, "diccionario_entidades.parquet"))
-  arrow::write_parquet(vars[, c("entidad", "variable", "alias", "etiqueta", "tipo", "grupo",
-                                "rango_min", "rango_max", "no_aplica", "sin_dato")],
-                       file.path(destino, "diccionario_variables.parquet"))
-  arrow::write_parquet(dic$etiquetas, file.path(destino, "diccionario_etiquetas.parquet"))
+  escribir_parquet(ent[, c("entidad", "padre", "etiqueta", "geografica", "n_registros")],
+                   file.path(destino, "diccionario_entidades.parquet"))
+  escribir_parquet(vars[, c("entidad", "variable", "alias", "etiqueta", "tipo", "grupo",
+                            "rango_min", "rango_max", "no_aplica", "sin_dato")],
+                   file.path(destino, "diccionario_variables.parquet"))
+  escribir_parquet(dic$etiquetas, file.path(destino, "diccionario_etiquetas.parquet"))
   limpiar_cache()
   message("Conversi\u00f3n terminada en ", format_tiempo(t0), ": ", destino)
   invisible(destino)
+}
+
+# Usa zstd (la mejor compresion) si la instalacion de arrow lo incluye; si no,
+# la mejor alternativa disponible. Algunas compilaciones minimas de arrow en
+# Linux no traen zstd ni snappy.
+compresion_parquet <- function() {
+  for (codec in c("zstd", "snappy", "gzip")) {
+    if (arrow::codec_is_available(codec)) return(codec)
+  }
+  "uncompressed"
+}
+
+escribir_parquet <- function(x, archivo, compresion = compresion_parquet()) {
+  nivel <- if (compresion == "zstd") 9 else NULL
+  arrow::write_parquet(x, archivo, compression = compresion, compression_level = nivel)
+}
+
+# Los datos publicados estan comprimidos con zstd.
+verificar_zstd <- function() {
+  if (!arrow::codec_is_available("zstd")) {
+    stop("Tu instalaci\u00f3n de 'arrow' no incluye la compresi\u00f3n zstd, ",
+         "necesaria para leer los datos publicados.\n",
+         "Reinstala arrow con todas sus funciones:\n",
+         "  Sys.setenv(NOT_CRAN = \"true\")\n",
+         "  install.packages(\"arrow\")\n",
+         "O convierte la base REDATAM con cpv_convertir().", call. = FALSE)
+  }
 }
 
 tipo_arrow <- function(x) {

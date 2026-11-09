@@ -48,6 +48,7 @@ cpv_descargar <- function(destino = cpv_dir(), url = cpv_url(), sobrescribir = F
          "o convierte la base REDATAM con cpv_convertir().", call. = FALSE)
   }
   url <- sub("/+$", "", url)
+  if (identical(url, URL_DATOS)) verificar_zstd()
   dir.create(destino, recursive = TRUE, showWarnings = FALSE)
   anterior <- options(timeout = max(3600, getOption("timeout")))
   on.exit(options(anterior), add = TRUE)
